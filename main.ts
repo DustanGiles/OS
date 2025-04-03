@@ -2,10 +2,17 @@ let a = 0
 
 
 // Initialize the menu_items array correctly
-let menuItems = {Calculator: calculator}
+let menuItems: { [key: string]: () => void } = {
+    Calculator: calculate,
+    "Other Thing": other
+    }
 
-function calculator(): void {
+function calculate(): void {
     console.log("calc");
+}
+
+function other(): void {
+    console.log("hi");
 }
 
 class Text {
@@ -90,16 +97,16 @@ class Menu {
     }
 }
 
-// Example usage:
-let pic = image.create(scene.screenWidth(), scene.screenHeight())
-// Fill the background
-pic.fillRect(0, 0, scene.screenWidth(), scene.screenHeight(), 0)
-scene.setBackgroundImage(pic)
-// for (let i = 0; i <= 20; i++) {
-//     // Using a 1-based index for better display
-//     menuItems.push(`${i}`)
-// }
-let menu = new Menu(menuItems, screen.width/2, screen.height/2);
+// // Example usage:
+// let pic = image.create(scene.screenWidth(), scene.screenHeight())
+// // Fill the background
+// pic.fillRect(0, 0, scene.screenWidth(), scene.screenHeight(), 0)
+// scene.setBackgroundImage(pic)
+// // for (let i = 0; i <= 20; i++) {
+// //     // Using a 1-based index for better display
+// //     menuItems.push(`${i}`)
+// // }
+let menu = new Menu(Object.keys(menuItems), screen.width/2, screen.height/2);
 
 let n = 0
 let count = 0
@@ -118,8 +125,12 @@ forever(function() {
     if (n < 0) {
         n++;
     }
+    if (controller.A.isPressed()) {
+        const selectedItem = Object.keys(menuItems)[n]; // Get the selected item from menuItems
+        menuItems[selectedItem]();  // Call the function
+        
+    }
     
     menu.select(n);
-    console.log(n);
 })
 
