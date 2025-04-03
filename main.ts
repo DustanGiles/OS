@@ -1,6 +1,12 @@
 let a = 0
+
+
 // Initialize the menu_items array correctly
-let menuItems: string[] = ["Calculator", "Notes", "Games", "Settings"]
+let menuItems = {Calculator: calculator}
+
+function calculator(): void {
+    console.log("calc");
+}
 
 class Text {
     x: number;
@@ -112,7 +118,7 @@ forever(function() {
     if (n < 0) {
         n++;
     }
-
+    
     menu.select(n);
     console.log(n);
 })
