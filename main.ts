@@ -5,7 +5,7 @@ let a = 0
 let menuItems: { [key: string]: () => void } = {
     Calculator: calculate,
     "Other Thing": other
-    }
+}
 
 function calculate(): void {
     console.log("calc");
@@ -68,11 +68,11 @@ class Menu {
 
         // Create a new Text object for each menu item and position them vertically
         for (let item of items) {
-            this.menuItems.push(new Text(cursor[0], cursor[1], item, 1, 1, 0, 10));
+            this.menuItems.push(new Text(cursor[0], cursor[1], item, 9, 6, 1, 10));
             cursor[1] += 10; // Adjust the vertical position for the next item
         }
 
-        
+
     }
 
     public moveMenu(posX: number, posY: number): void {
@@ -83,7 +83,7 @@ class Menu {
         }
     }
 
-    public select(n: number): void { 
+    public select(n: number): void {
         let cursor = [this.menuItems[n].x, this.posY + (this.posY - this.menuItems[n].y)];
         for (let item = 0; item < this.menuItems.length; item++) {
             this.menuItems[item].setTextPosition(cursor[0], cursor[1]);
@@ -106,11 +106,11 @@ class Menu {
 // //     // Using a 1-based index for better display
 // //     menuItems.push(`${i}`)
 // // }
-let menu = new Menu(Object.keys(menuItems), screen.width/2, screen.height/2);
+let menu = new Menu(Object.keys(menuItems), screen.width / 2, screen.height / 2);
 
 let n = 0
 let count = 0
-forever(function() {
+forever(function () {
     if (controller.up.isPressed()) {
         n++;
         pause(100)
@@ -119,7 +119,7 @@ forever(function() {
         n--;
         pause(100)
     }
-    if (n > menu.menuLength-1){
+    if (n > menu.menuLength - 1) {
         n--;
     }
     if (n < 0) {
@@ -128,9 +128,8 @@ forever(function() {
     if (controller.A.isPressed()) {
         const selectedItem = Object.keys(menuItems)[n]; // Get the selected item from menuItems
         menuItems[selectedItem]();  // Call the function
-        
+
     }
-    
+
     menu.select(n);
 })
-
