@@ -1,135 +1,160 @@
-let a = 0
-
-
-// Initialize the menu_items array correctly
-let menuItems: { [key: string]: () => void } = {
-    Calculator: calculate,
-    "Other Thing": other
-}
-
-function calculate(): void {
-    console.log("calc");
-}
-
-function other(): void {
-    console.log("hi");
-}
-
 class Text {
     x: number;
     y: number;
     text: TextSprite;
-    width: number;
 
-    constructor(x: number, y: number, text: string, height: number = 1, border: number = 1, borderWidth: number = 0, z: number = 10) {
-        // Coordinates and text parameters
+    constructor(x: number, y: number, label: string, outline: number=6) {
         this.x = x;
         this.y = y;
-        this.text = textsprite.create(text);
-
-        // Set text height, outline, Z index, and position
-        this.text.setMaxFontHeight(height);
-        this.text.setOutline(borderWidth, border);
+        this.text = textsprite.create(label);
+        this.text.setMaxFontHeight(9);
+        this.text.setOutline(1, outline);
         this.text.setPosition(x, y);
-        this.text.z = z;
-
-        // Store the width of the text sprite
-        this.width = this.text.width;
+        this.text.z = 10;
     }
 
-    // Method to set text position
-    public setTextPosition(x: number, y: number): void {
+    setPosition(x: number, y: number): void {
         this.text.setPosition(x, y);
     }
 
-    // Getters for x and y
-    public getX(): number {
-        return this.text.x;
-    }
-
-    public getY(): number {
-        return this.text.y;
+    destroy(): void {
+        sprites.destroy(this.text);
     }
 }
 
 class Menu {
-    menuItems: Text[];  // Declaring menuItems as an array of Text objects
-    selector: number;
-    posX: number;
-    posY: number;
-    menuLength: number;
-    constructor(items: string[], posX: number, posY: number) {
-        let cursor = [posX, posY]; // Start at the center of the screen
-        this.menuLength = items.length;
-        this.menuItems = []; // Initialize the menuItems array
-        this.selector = 0;
-        this.posX = posX;
-        this.posY = posY;
+    items: string[];
+    labels: Text[];
+    actions: { [key: string]: () => void };
+    selectedIndex: number;
+    x: number;
+    y: number;
+    outline: number=6;
 
-        // Create a new Text object for each menu item and position them vertically
-        for (let item of items) {
-            this.menuItems.push(new Text(cursor[0], cursor[1], item, 9, 6, 1, 10));
-            cursor[1] += 10; // Adjust the vertical position for the next item
-        }
+    constructor(actions: { [key: string]: () => void }, x: number, y: number) {
+        this.items = Object.keys(actions);
+        this.actions = actions;
+        this.labels = [];
+        this.selectedIndex = 0;
+        this.x = x;
+        this.y = y;
 
-
-    }
-
-    public moveMenu(posX: number, posY: number): void {
-        let cursor = [posX, posY];
-        for (let item = 0; item < this.menuItems.length; item++) {
-            this.menuItems[item].setTextPosition(cursor[0], cursor[1]);
-            cursor[1] += 10; // Adjust the vertical position for the next item
+        let offsetY = y;
+        for (let label of this.items) {
+            this.labels.push(new Text(x, offsetY, label, this.outline));
+            offsetY += 10;
         }
     }
 
-    public select(n: number): void {
-        let cursor = [this.menuItems[n].x, this.posY + (this.posY - this.menuItems[n].y)];
-        for (let item = 0; item < this.menuItems.length; item++) {
-            this.menuItems[item].setTextPosition(cursor[0], cursor[1]);
-            cursor[1] += 10; // Adjust the vertical position for the next item
+    updateSelection(index: number): void {
+        let offsetY = this.y + (this.y - this.labels[index].y);
+        for (let label of this.labels) {
+            label.setPosition(this.x, offsetY);
+            offsetY += 10;
         }
     }
 
-    // Method to return the menu items
-    public returnMenu(): Text[] {
-        return this.menuItems;
+    getSelectedItem(): string {
+        return this.items[this.selectedIndex];
+    }
+
+    get length(): number {
+        return this.items.length;
+    }
+
+    selectNext(): void {
+        this.selectedIndex = Math.min(this.length - 1, this.selectedIndex + 1);
+    }
+
+    selectPrev(): void {
+        this.selectedIndex = Math.max(0, this.selectedIndex - 1);
+    }
+
+    activate(): void {
+        let selected = this.getSelectedItem();
+        this.actions[selected]();
+    }
+
+    destroy(): void {
+        for (let label of this.labels) {
+            label.destroy();
+        }
+    }
+
+    handleInput(): void {
+        if (controller.up.isPressed()) {
+            this.selectPrev();
+            pause(100);
+        }
+
+        if (controller.down.isPressed()) {
+            this.selectNext();
+            pause(100);
+        }
+
+        if (controller.A.isPressed()) {
+            this.activate();
+            pause(500)
+        }
+
+        this.updateSelection(this.selectedIndex);
     }
 }
 
-// // Example usage:
-// let pic = image.create(scene.screenWidth(), scene.screenHeight())
-// // Fill the background
-// pic.fillRect(0, 0, scene.screenWidth(), scene.screenHeight(), 0)
-// scene.setBackgroundImage(pic)
-// // for (let i = 0; i <= 20; i++) {
-// //     // Using a 1-based index for better display
-// //     menuItems.push(`${i}`)
-// // }
-let menu = new Menu(Object.keys(menuItems), screen.width / 2, screen.height / 2);
+let mainMenuItems: { [key: string]: () => void } = {
+    "Calculator": showCalculator,
+    "Settings": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
+    "Games": () => openMenu(new Menu(gamesMenuItems, screen.width / 2, screen.height / 2)),
+};
 
-let n = 0
-let count = 0
+let gamesMenuItems: { [key: string]: () => void } = {
+    "Snake": startSnake,
+    "Flappy": startFlappy,
+    "Back": () => openMenu(new Menu(mainMenuItems, screen.width / 2, screen.height / 2)),
+};
+
+let settingsMenuItems: { [key: string]: () => void } = {
+    "Text Outline Colour": () => openMenu(new Menu(textOutlineColorMenuItems, screen.width / 2, screen.height / 2)),
+    "Flappy": startFlappy,
+    "Back": () => openMenu(new Menu(mainMenuItems, screen.width / 2, screen.height / 2)),
+};
+
+let textOutlineColorMenuItems: { [key: string]: () => void } = {
+    "Red": selectOutlineColor,
+    "Green": startFlappy,
+    "Back": () => openMenu(new Menu(mainMenuItems, screen.width / 2, screen.height / 2)),
+};
+
+function selectOutlineColor(): void {
+    let outlineColor = 4
+    currentMenu.outline = 4
+}
+
+function showCalculator(): void {
+    console.log("Calculator selected");
+}
+
+function startSnake(): void {
+    console.log("Snake game started");
+}
+
+function startFlappy(): void {
+    console.log("Flappy game started");
+}
+
+// Global variables to manage active menu
+let currentMenu: Menu;
+let mainMenu = new Menu(mainMenuItems, screen.width / 2, screen.height / 2);
+let gamesMenu: Menu;
+
+currentMenu = mainMenu;
+
+function openMenu(menu: Menu): void {
+    
+    currentMenu.destroy();
+    currentMenu = menu;
+}
+
 forever(function () {
-    if (controller.up.isPressed()) {
-        n++;
-        pause(100)
-    }
-    if (controller.down.isPressed()) {
-        n--;
-        pause(100)
-    }
-    if (n > menu.menuLength - 1) {
-        n--;
-    }
-    if (n < 0) {
-        n++;
-    }
-    if (controller.A.isPressed()) {
-        const selectedItem = Object.keys(menuItems)[n]; // Get the selected item from menuItems
-        menuItems[selectedItem]();  // Call the function
-
-    }
-
-    menu.select(n);
-})
+    currentMenu.handleInput();
+});
