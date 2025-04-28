@@ -11,7 +11,7 @@ class Text {
         this.text.setOutline(1, outline);
         this.text.setPosition(x, y);
         this.text.z = 10;
-    }
+    } 
 
     setPosition(x: number, y: number): void {
         this.text.setPosition(x, y);
@@ -29,7 +29,6 @@ class Menu {
     selectedIndex: number;
     x: number;
     y: number;
-    outline: number=6;
 
     constructor(actions: { [key: string]: () => void }, x: number, y: number) {
         this.items = Object.keys(actions);
@@ -41,7 +40,7 @@ class Menu {
 
         let offsetY = y;
         for (let label of this.items) {
-            this.labels.push(new Text(x, offsetY, label, this.outline));
+            this.labels.push(new Text(x, offsetY, label, outlineColour));
             offsetY += 10;
         }
     }
@@ -101,6 +100,8 @@ class Menu {
     }
 }
 
+let outlineColour = 6;
+
 let mainMenuItems: { [key: string]: () => void } = {
     "Calculator": showCalculator,
     "Settings": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
@@ -115,19 +116,17 @@ let gamesMenuItems: { [key: string]: () => void } = {
 
 let settingsMenuItems: { [key: string]: () => void } = {
     "Text Outline Colour": () => openMenu(new Menu(textOutlineColorMenuItems, screen.width / 2, screen.height / 2)),
-    "Flappy": startFlappy,
     "Back": () => openMenu(new Menu(mainMenuItems, screen.width / 2, screen.height / 2)),
 };
 
 let textOutlineColorMenuItems: { [key: string]: () => void } = {
-    "Red": selectOutlineColor,
-    "Green": startFlappy,
-    "Back": () => openMenu(new Menu(mainMenuItems, screen.width / 2, screen.height / 2)),
+    "Red": () => selectOutlineColor(4),
+    "Green": () => selectOutlineColor(8),
+    "Back": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
 };
 
-function selectOutlineColor(): void {
-    let outlineColor = 4
-    currentMenu.outline = 4
+function selectOutlineColor(colour: number): void {
+    outlineColour = colour
 }
 
 function showCalculator(): void {
