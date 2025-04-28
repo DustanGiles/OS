@@ -1,13 +1,13 @@
-function startSnake () {
+function startSnake() {
     console.log("Snake game started")
 }
-function startFlappy () {
+function startFlappy() {
     console.log("Flappy game started")
 }
-function showCalculator () {
+function showCalculator() {
     console.log("Calculator selected")
 }
-function selectOutlineColor (colour: number) {
+function selectOutlineColor(colour: number) {
     settings.writeNumber("outlineColour", colour)
 }
 class Text {
@@ -15,7 +15,7 @@ class Text {
     y: number;
     text: TextSprite;
 
-    constructor(x: number, y: number, label: string, outline: number=6) {
+    constructor(x: number, y: number, label: string, outline: number = 6) {
         this.x = x;
         this.y = y;
         this.text = textsprite.create(label);
@@ -23,7 +23,7 @@ class Text {
         this.text.setOutline(1, outline);
         this.text.setPosition(x, y);
         this.text.z = 10;
-    } 
+    }
 
     setPosition(x: number, y: number): void {
         this.text.setPosition(x, y);
@@ -43,7 +43,7 @@ class Menu {
     selector: Image;
     oldWidth: number;
     oldHeight: number;
-    
+
 
     constructor(actions: { [key: string]: () => void }, x: number, y: number) {
         this.selector = image.create(screen.width, screen.height)
@@ -113,16 +113,19 @@ class Menu {
     handleInput(): void {
         if (controller.up.isPressed()) {
             this.selectPrev();
+            music.play(music.melodyPlayable(music.zapped), music.PlaybackMode.InBackground)
             pause(80);
         }
 
         if (controller.down.isPressed()) {
             this.selectNext();
+            music.play(music.melodyPlayable(music.zapped), music.PlaybackMode.InBackground)
             pause(80);
         }
 
         if (controller.A.isPressed() && debounceThing == false) {
             debounceThing = true
+            music.play(music.melodyPlayable(music.baDing), music.PlaybackMode.InBackground)
             this.activate();
         }
 
@@ -147,6 +150,7 @@ let gamesMenuItems: { [key: string]: () => void } = {
 };
 let settingsMenuItems: { [key: string]: () => void } = {
     "Text Outline Colour": () => openMenu(new Menu(textOutlineColorMenuItems, screen.width / 2, screen.height / 2)),
+    // "Audio Volume": () => openMenu(new Menu(audioVolumeMenuItems, screen.width / 2, screen.height / 2)),
     "Back": () => openMenu(new Menu(mainMenuItems, screen.width / 2, screen.height / 2)),
 };
 let textOutlineColorMenuItems: { [key: string]: () => void } = {
@@ -162,16 +166,31 @@ let textOutlineColorMenuItems: { [key: string]: () => void } = {
     "None": () => selectOutlineColor(15),
     "Back": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
 };
+
+// let audioVolumeMenuItems: { [key: string]: () => void } = {
+//     "20": () => selectAudioVolume(2),
+//     "18": () => selectAudioVolume(3),
+//     "16": () => selectAudioVolume(4),
+//     "14": () => selectAudioVolume(5),
+//     "12": () => selectAudioVolume(6),
+//     "10": () => selectAudioVolume(7),
+//     "8": () => selectAudioVolume(8),
+//     "6": () => selectAudioVolume(9),
+//     "4": () => selectAudioVolume(10),
+//     "2": () => selectAudioVolume(15),
+//     "0": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
+//     "Back": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
+// };
 let currentMenu: Menu;
 let mainMenu = new Menu(mainMenuItems, screen.width / 2, screen.height / 2);
 let gamesMenu: Menu;
 currentMenu = mainMenu
 function openMenu(menu: Menu): void {
-   
+
     currentMenu.destroy();
     currentMenu = menu;
     menu.updateSelection(menu.selectedIndex);
-    
+
 }
 forever(function () {
     currentMenu.handleInput();
