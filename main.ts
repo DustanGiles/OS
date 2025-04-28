@@ -1,3 +1,15 @@
+function startSnake () {
+    console.log("Snake game started")
+}
+function startFlappy () {
+    console.log("Flappy game started")
+}
+function showCalculator () {
+    console.log("Calculator selected")
+}
+function selectOutlineColor (colour: number) {
+    settings.writeNumber("outlineColour", colour)
+}
 class Text {
     x: number;
     y: number;
@@ -21,7 +33,6 @@ class Text {
         sprites.destroy(this.text);
     }
 }
-
 class Menu {
     items: string[];
     labels: Text[];
@@ -29,28 +40,45 @@ class Menu {
     selectedIndex: number;
     x: number;
     y: number;
+    selector: Image;
+    oldWidth: number;
+    oldHeight: number;
+    
 
     constructor(actions: { [key: string]: () => void }, x: number, y: number) {
+        this.selector = image.create(screen.width, screen.height)
         this.items = Object.keys(actions);
         this.actions = actions;
         this.labels = [];
         this.selectedIndex = 0;
         this.x = x;
         this.y = y;
+        this.oldHeight = 0;
+        this.oldWidth = 0;
 
         let offsetY = y;
         for (let label of this.items) {
-            this.labels.push(new Text(x, offsetY, label, outlineColour));
+            this.labels.push(new Text(x, offsetY, label, settings.readNumber("outlineColour")));
             offsetY += 10;
         }
     }
 
     updateSelection(index: number): void {
-        let offsetY = this.y + (this.y - this.labels[index].y);
-        for (let label of this.labels) {
-            label.setPosition(this.x, offsetY);
-            offsetY += 10;
+        let offsetY2 = this.y + (this.y - this.labels[index].y);
+        if (this.oldHeight != this.labels[index].text.height || this.oldWidth != this.labels[index].text.width) {
+            this.selector.fillRect(0, 0, screen.width, screen.height, 0)
+            this.selector.fillRect(this.labels[index].text.x - this.labels[index].text.width / 2, this.labels[index].text.y - this.labels[index].text.height / 2, this.labels[index].text.width, this.labels[index].text.height, 1)
+            scene.setBackgroundImage(this.selector)
+            // this.oldHeight = this.labels[index].text.height
+            // this.oldWidth = this.labels[index].text.width
         }
+
+
+        for (let label2 of this.labels) {
+            label2.setPosition(this.x, offsetY2);
+            offsetY2 += 10;
+        }
+
     }
 
     getSelectedItem(): string {
@@ -72,88 +100,79 @@ class Menu {
     activate(): void {
         let selected = this.getSelectedItem();
         this.actions[selected]();
+        pause(500)
+        debounceThing = false;
     }
 
     destroy(): void {
-        for (let label of this.labels) {
-            label.destroy();
+        for (let label3 of this.labels) {
+            label3.destroy();
         }
     }
 
     handleInput(): void {
         if (controller.up.isPressed()) {
             this.selectPrev();
-            pause(100);
+            pause(80);
         }
 
         if (controller.down.isPressed()) {
             this.selectNext();
-            pause(100);
+            pause(80);
         }
 
-        if (controller.A.isPressed()) {
+        if (controller.A.isPressed() && debounceThing == false) {
+            debounceThing = true
             this.activate();
-            pause(500)
         }
 
         this.updateSelection(this.selectedIndex);
     }
 }
+if (!settings.exists("outlineColour")) {
+    settings.writeNumber("outlineColour", 6)
+}
 
-let outlineColour = 6;
+let debounceThing = false;
 
 let mainMenuItems: { [key: string]: () => void } = {
     "Calculator": showCalculator,
-    "Settings": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
     "Games": () => openMenu(new Menu(gamesMenuItems, screen.width / 2, screen.height / 2)),
+    "Settings": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
 };
-
 let gamesMenuItems: { [key: string]: () => void } = {
     "Snake": startSnake,
     "Flappy": startFlappy,
     "Back": () => openMenu(new Menu(mainMenuItems, screen.width / 2, screen.height / 2)),
 };
-
 let settingsMenuItems: { [key: string]: () => void } = {
     "Text Outline Colour": () => openMenu(new Menu(textOutlineColorMenuItems, screen.width / 2, screen.height / 2)),
     "Back": () => openMenu(new Menu(mainMenuItems, screen.width / 2, screen.height / 2)),
 };
-
 let textOutlineColorMenuItems: { [key: string]: () => void } = {
-    "Red": () => selectOutlineColor(4),
-    "Green": () => selectOutlineColor(8),
+    "Red": () => selectOutlineColor(2),
+    "Pink": () => selectOutlineColor(3),
+    "Orange": () => selectOutlineColor(4),
+    "Yellow": () => selectOutlineColor(5),
+    "Cyan": () => selectOutlineColor(6),
+    "Green": () => selectOutlineColor(7),
+    "Dark Blue": () => selectOutlineColor(8),
+    "Light Blue": () => selectOutlineColor(9),
+    "Purple": () => selectOutlineColor(10),
+    "None": () => selectOutlineColor(15),
     "Back": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
 };
-
-function selectOutlineColor(colour: number): void {
-    outlineColour = colour
-}
-
-function showCalculator(): void {
-    console.log("Calculator selected");
-}
-
-function startSnake(): void {
-    console.log("Snake game started");
-}
-
-function startFlappy(): void {
-    console.log("Flappy game started");
-}
-
-// Global variables to manage active menu
 let currentMenu: Menu;
 let mainMenu = new Menu(mainMenuItems, screen.width / 2, screen.height / 2);
 let gamesMenu: Menu;
-
-currentMenu = mainMenu;
-
+currentMenu = mainMenu
 function openMenu(menu: Menu): void {
-    
+   
     currentMenu.destroy();
     currentMenu = menu;
+    menu.updateSelection(menu.selectedIndex);
+    
 }
-
 forever(function () {
     currentMenu.handleInput();
-});
+})
