@@ -5,6 +5,35 @@ function startSnake () {
 // currentMenu = calcMenu
 function showCalculator () {
     console.log("Calculator selected")
+    currentMenu.destroy()
+    let buttonSize = 20
+    let margin = 15
+    let buttonsPerLine = (screen.width)/buttonSize
+    let buttons = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "-", "X", "/", "=", "AC", buttonsPerLine.toString()]
+    let buttonsText = []
+    let pos = [buttonSize / 2, 60]
+    for (let button of buttons) {
+        if (pos[0] > screen.width-buttonSize/2) {
+            pos[0] = buttonSize / 2
+            pos[1] += buttonSize
+        }
+        buttonsText.push(new Text(pos[0], pos[1], button, 0))
+        pos[0] += buttonSize
+    }
+    let selector = image.create(20, 20)
+    selector.fillRect(0, 0, 20, 20, 2)
+    let mySprite = sprites.create(selector, SpriteKind.Player)
+    let selected = 3
+    mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y)
+    forever(function ()) {
+        if (controller.right.isPressed()) {
+            selected += 1
+            mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y)
+        }
+    }
+    
+
+    
 }
 function Flappy () {
     console.log("Flappy game started")
@@ -62,14 +91,12 @@ class Menu {
     actions: { [key: string]: () => void };
     selectedIndex: number;
     x: number;
-    y: number;
-    selector: Image;
+    y: number
     oldWidth: number;
     oldHeight: number;
 
 
     constructor(actions: { [key: string]: () => void }, x: number, y: number) {
-        this.selector = image.create(screen.width, screen.height)
         this.items = Object.keys(actions);
         this.actions = actions;
         this.labels = [];
@@ -88,13 +115,6 @@ class Menu {
 
     updateSelection(index: number): void {
         let offsetY2 = this.y + (this.y - this.labels[index].y);
-        // if (this.oldHeight != this.labels[index].text.height || this.oldWidth != this.labels[index].text.width) {
-        //     this.selector.fillRect(0, 0, screen.width, screen.height, 0)
-        //     this.selector.fillRect(this.labels[index].text.x - this.labels[index].text.width / 2, this.labels[index].text.y - this.labels[index].text.height / 2, this.labels[index].text.width, this.labels[index].text.height, 1)
-        //     scene.setBackgroundImage(this.selector)
-        //     // this.oldHeight = this.labels[index].text.height
-        //     // this.oldWidth = this.labels[index].text.width
-        // }
 
 
         for (let label2 of this.labels) {
