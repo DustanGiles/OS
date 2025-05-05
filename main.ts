@@ -6,12 +6,14 @@ function startSnake () {
 function showCalculator () {
     console.log("Calculator selected")
     currentMenu.destroy()
+    let pressedList: string[] = []
+    let pressedText = ""
     let buttonSize = 20
     let margin = 15
     let buttonsPerLine = (screen.width)/buttonSize
-    let buttons = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "-", "X", "/", "=", "AC", buttonsPerLine.toString()]
-    let buttonsText = []
-    let pos = [buttonSize / 2, 60]
+    let buttons = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "-", "X", "/", "=", "AC"]
+    let buttonsText: Text[] = []
+    let pos = [buttonSize / 2, 80]
     for (let button of buttons) {
         if (pos[0] > screen.width-buttonSize/2) {
             pos[0] = buttonSize / 2
@@ -23,18 +25,76 @@ function showCalculator () {
     let selector = image.create(20, 20)
     selector.fillRect(0, 0, 20, 20, 2)
     let mySprite = sprites.create(selector, SpriteKind.Player)
-    let selected = 3
+    let selected = 0
     mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y)
-    forever(function ()) {
+    pause(500)
+    let displayPressed = new Text(10, 20, "", 0, 12)
+    while (true){
+        if (controller.A.isPressed()) {
+            if (buttons[selected] == "AC") {
+                pressedList = []
+            }
+            else {
+                pressedList.push(buttons[selected])
+            }
+            pause(100)
+        }
         if (controller.right.isPressed()) {
             selected += 1
-            mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y)
+        }
+        if (controller.left.isPressed()) {
+            selected -= 1
+            
+        }
+        if (controller.up.isPressed()) {
+            selected -= buttonsPerLine
+
+        }
+        if (controller.down.isPressed()) {
+            selected += buttonsPerLine
+
+        }
+
+        if (selected >= buttonsText.length){
+            selected = buttonsText.length - 1
+        }
+        if (selected < 0) {
+            selected = 0
+        }
+
+        mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y)
+        // displayPressed.text.setText(pressedList.join(""))
+        // displayPressed.text.setText()
+        console.log(calculate(pressedList))
+
+
+        pause(50)
+    }
+}
+function calculate(inputList: string[]) {
+    let numberStr = "";
+    let operation = "";
+    let grouped: string[] = [];
+
+    for (let input of inputList) {
+        if (!isNaN(parseFloat(input))) {
+            numberStr += input
+
+
+        } else {
+            grouped.push(numberStr); // Push the number before the operator
+            numberStr = "";
+            grouped.push(input); // Push the operator
         }
     }
-    
 
-    
+    if (numberStr.length > 0) {
+        grouped.push(numberStr); // Push the last number if present
+    }
+
+    return grouped;
 }
+
 function Flappy () {
     console.log("Flappy game started")
     currentMenu.destroy();
@@ -67,11 +127,11 @@ class Text {
     y: number;
     text: TextSprite;
 
-    constructor(x: number, y: number, label: string, outline: number = 6) {
+    constructor(x: number, y: number, label: string, outline: number = 6, height: number = 8) {
         this.x = x;
         this.y = y;
         this.text = textsprite.create(label);
-        this.text.setMaxFontHeight(8);
+        this.text.setMaxFontHeight(height);
         this.text.setOutline(1, outline);
         this.text.setPosition(x, y);
         this.text.z = 10;
@@ -209,8 +269,8 @@ let textOutlineColorMenuItems: { [key: string]: () => void } = {
     "None": () => selectOutlineColor(15),
     "Back": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
 };
-let calcButtons: { [key: string]: () => void } = {
-    "i": () => Flappy(),
+// let calcButtons: { [key: string]: () => void } = {
+    // "i": () => Flappy(),
     // "2": () => selectOutlineColor(3),
     // "3": () => selectOutlineColor(4),
     // "4": () => selectOutlineColor(5),
@@ -226,7 +286,7 @@ let calcButtons: { [key: string]: () => void } = {
     // "/": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
     // "=": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
     // "CLEAR ALL": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
-};
+// };
 let currentMenu: Menu;
 let mainMenu = new Menu(mainMenuItems, screen.width / 2, screen.height / 2);
 let gamesMenu: Menu;
