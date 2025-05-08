@@ -3,84 +3,119 @@ function startSnake () {
 }
 // let calcMenu = new Menu(calcButtons, screen.width / 2, screen.height / 2);
 // currentMenu = calcMenu
-function showCalculator () {
-    console.log("Calculator selected")
-    currentMenu.destroy()
-    let pressedList: string[] = []
-    let pressedText = ""
-    let buttonSize = 20
-    let margin = 15
-    let buttonsPerLine = (screen.width)/buttonSize
-    let buttons = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "-", "X", "/", "=", "AC"]
-    let buttonsText: Text[] = []
-    let pos = [buttonSize / 2, 80]
+function showCalculator() {
+    console.log("Calculator selected");
+    currentMenu.destroy();
+
+    let pressedList: string[] = [];
+    let pressedText = "";
+    let buttonSize = 20;
+    let margin = 15;
+    let buttonsPerLine = (screen.width) / buttonSize;
+    let buttons = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "-", "x", "/", "=", "AC"];
+    let buttonsText: Text[] = [];
+    let pos = [buttonSize / 2, 80];
+
+    // Create button grid
     for (let button of buttons) {
-        if (pos[0] > screen.width-buttonSize/2) {
-            pos[0] = buttonSize / 2
-            pos[1] += buttonSize
+        if (pos[0] > screen.width - buttonSize / 2) {
+            pos[0] = buttonSize / 2;
+            pos[1] += buttonSize;
         }
-        buttonsText.push(new Text(pos[0], pos[1], button, 0))
-        pos[0] += buttonSize
+        buttonsText.push(new Text(pos[0], pos[1], button, 0));
+        pos[0] += buttonSize;
     }
-    let selector = image.create(20, 20)
-    selector.fillRect(0, 0, 20, 20, 2)
-    let mySprite = sprites.create(selector, SpriteKind.Player)
-    let selected = 0
-    mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y)
-    pause(500)
-    let displayPressed = new Text(10, 20, "", 0, 12)
-    while (true){
+
+    // Create selector sprite
+    let selector = image.create(20, 20);
+    selector.fillRect(0, 0, 20, 20, 2);
+    let mySprite = sprites.create(selector, SpriteKind.Player);
+    let selected = 0;
+    mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y);
+    pause(500);
+
+    // Display area for pressed text
+    let displayPressed = new Text(10, 20, "", 0, 12);
+    let displayed = "";
+
+    while (true) {
         if (controller.A.isPressed()) {
-            if (buttons[selected] == "AC") {
-                pressedList = []
+            let currentButton = buttons[selected];
+
+            if (currentButton === "AC") {
+                // Clear screen and reset
+                pressedList = [];
+                displayed = "";
+                displayPressed.text.setText(displayed);
+            } else if (currentButton === "=") {
+                // Calculate and display result
+                displayed = calculate(pressedList).toString();
+                displayPressed.text.setText(displayed);
+            } else {
+                // Add button to pressed list
+                pressedList.push(currentButton);
+
+                // Update displayed text accordingly
+                if (currentButton === "+" || currentButton === "-" || currentButton === "x" || currentButton === "/") {
+                    // If an operator is pressed, show the current expression
+                    displayed = pressedList.join("");
+                } else {
+                    // If a number is pressed, just show it
+                    displayed = pressedList.join("");
+                }
+                displayPressed.text.setText(displayed);
             }
-            else {
-                pressedList.push(buttons[selected])
-            }
-            pause(100)
+
+            pause(100);  // Debounce the button press
         }
+
+        // Navigation logic: Arrow keys
         if (controller.right.isPressed()) {
-            selected += 1
+            selected += 1;
         }
         if (controller.left.isPressed()) {
-            selected -= 1
-            
+            selected -= 1;
         }
         if (controller.up.isPressed()) {
-            selected -= buttonsPerLine
-
+            if (selected - buttonsPerLine >= 0) {
+                selected -= buttonsPerLine;
+            }
         }
         if (controller.down.isPressed()) {
-            selected += buttonsPerLine
-
+            if (selected + buttonsPerLine < buttonsText.length) {
+                selected += buttonsPerLine;
+            }
         }
 
-        if (selected >= buttonsText.length){
-            selected = buttonsText.length - 1
+        // Clamp the selected index to valid range
+        if (selected >= buttonsText.length) {
+            selected = buttonsText.length - 1;
         }
         if (selected < 0) {
-            selected = 0
+            selected = 0;
         }
 
-        mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y)
-        // displayPressed.text.setText(pressedList.join(""))
-        // displayPressed.text.setText()
-        console.log(calculate(pressedList))
+        // Update sprite position to follow the selection
+        mySprite.setPosition(buttonsText[selected].x, buttonsText[selected].y);
 
+        // Optionally log the value to debug
+        console.logValue(displayed, "list");
 
-        pause(50)
+        pause(60);
     }
 }
-function calculate(inputList: string[]) {
+
+
+
+function calculate(inputList: string[]): Number {
     let numberStr = "";
     let operation = "";
     let grouped: string[] = [];
 
+    // Parse input into numbers and operators
     for (let input of inputList) {
         if (!isNaN(parseFloat(input))) {
-            numberStr += input
-
-
+            numberStr += input;
         } else {
             grouped.push(numberStr); // Push the number before the operator
             numberStr = "";
@@ -92,8 +127,35 @@ function calculate(inputList: string[]) {
         grouped.push(numberStr); // Push the last number if present
     }
 
-    return grouped;
+    let output = parseFloat(grouped[0]); // Initialize output with the first number
+    let index = 1; // Start from the second element
+
+    // Iterate through the grouped list and evaluate the expression
+    while (index < grouped.length) {
+        let operator = grouped[index];
+        let nextNum = parseFloat(grouped[index + 1]);
+
+        if (operator === "+") {
+            output += nextNum; // Perform addition
+        }
+        if (operator === "-") {
+            output -= nextNum; // Perform addition
+        }
+        if (operator === "/") {
+            output /= nextNum; // Perform addition
+        }
+        if (operator === "x") {
+            output *= nextNum; // Perform addition
+        }
+
+        index += 2; // Skip over the operator and the next number
+    }
+
+    return output;
 }
+
+// console.log(calculate(["1", "4", "+", "6", "/", "2"])); // Output should be 47
+
 
 function Flappy () {
     console.log("Flappy game started")
