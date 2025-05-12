@@ -68,6 +68,10 @@ function showCalculator() {
 
             pause(100);  // Debounce the button press
         }
+        else if (controller.B.isPressed()) {
+            game.reset()
+        
+        }
 
         // Navigation logic: Arrow keys
         if (controller.right.isPressed()) {
@@ -104,8 +108,64 @@ function showCalculator() {
         pause(60);
     }
 }
+function showNotes() {
+    let texts = []
+    currentMenu.destroy();
+    let input: string;
+    while (!controller.B.isPressed()) {
+        input = game.askForString("please enter text");
+        texts.push(new Text(screen.width / 2, screen.height / 2, input));
+        pause(5)
+        while (!controller.A.isPressed()) {
+            if (controller.down.isPressed()) {
+                texts[texts.length - 1].setPosition(texts[texts.length - 1].text.x, texts[texts.length - 1].text.y + 2)
+            }
+            if (controller.up.isPressed()) {
+                texts[texts.length - 1].setPosition(texts[texts.length - 1].text.x, texts[texts.length - 1].text.y - 2)
+            }
+            if (controller.left.isPressed()) {
+                texts[texts.length - 1].setPosition(texts[texts.length - 1].text.x - 2, texts[texts.length - 1].text.y)
+            }
+            if (controller.right.isPressed()) {
+                texts[texts.length - 1].setPosition(texts[texts.length - 1].text.x + 2, texts[texts.length - 1].text.y)
+            }
+            console.log("dsa")
+            pause(50)
+        }
+    
+        let deltaViewX = 0
+        let deltaViewY = 0
+        while (controller.A.isPressed()) {
+            pause(50)
+        }
+        while (!controller.A.isPressed()) {
+            if (controller.up.isPressed()) {
+                deltaViewY += 2
+            }
+            if (controller.down.isPressed()) {
+                deltaViewY -= 2
+            }
+            if (controller.left.isPressed()) {
+                deltaViewX += 2
+            }
+            if (controller.right.isPressed()) {
+                deltaViewX -= 2
+            }
+            for (let note of texts) {
+                note.setPosition(note.text.x + deltaViewX, note.text.y + deltaViewY)
+            }
+            if (controller.B.isPressed()) {
+                game.reset()
+            }
+            deltaViewX = 0
+            deltaViewY = 0
+            pause(50)
+        }
 
-
+    }
+   
+    
+}
 
 function calculate(inputList: string[]): Number {
     let numberStr = "";
@@ -138,13 +198,13 @@ function calculate(inputList: string[]): Number {
         if (operator === "+") {
             output += nextNum; // Perform addition
         }
-        if (operator === "-") {
+        else if (operator === "-") {
             output -= nextNum; // Perform addition
         }
-        if (operator === "/") {
+        else if (operator === "/") {
             output /= nextNum; // Perform addition
         }
-        if (operator === "x") {
+        else if (operator === "x") {
             output *= nextNum; // Perform addition
         }
 
@@ -154,7 +214,6 @@ function calculate(inputList: string[]): Number {
     return output;
 }
 
-// console.log(calculate(["1", "4", "+", "6", "/", "2"])); // Output should be 47
 
 
 function Flappy () {
@@ -305,6 +364,7 @@ if (!(settings.exists("textSize"))) {
 }
 let mainMenuItems: { [key: string]: () => void } = {
     "Calculator": showCalculator,
+    "Notes": showNotes,
     "Games": () => openMenu(new Menu(gamesMenuItems, screen.width / 2, screen.height / 2)),
     "Settings": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
 };
@@ -331,24 +391,7 @@ let textOutlineColorMenuItems: { [key: string]: () => void } = {
     "None": () => selectOutlineColor(15),
     "Back": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
 };
-// let calcButtons: { [key: string]: () => void } = {
-    // "i": () => Flappy(),
-    // "2": () => selectOutlineColor(3),
-    // "3": () => selectOutlineColor(4),
-    // "4": () => selectOutlineColor(5),
-    // "5": () => selectOutlineColor(6),
-    // "6": () => selectOutlineColor(7),
-    // "7": () => selectOutlineColor(8),
-    // "8": () => selectOutlineColor(9),
-    // "9": () => selectOutlineColor(10),
-    // "0": () => selectOutlineColor(15),
-    // "+": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
-    // "-": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
-    // "x": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
-    // "/": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
-    // "=": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
-    // "CLEAR ALL": () => openMenu(new Menu(settingsMenuItems, screen.width / 2, screen.height / 2)),
-// };
+
 let currentMenu: Menu;
 let mainMenu = new Menu(mainMenuItems, screen.width / 2, screen.height / 2);
 let gamesMenu: Menu;
